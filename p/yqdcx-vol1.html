@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset='UTF-8'>
+		<title>有趣的猜想（Vol. 1）</title>
+		<link rel="shortcut icon" href="/res/favicon.png">
+		<link rel="stylesheet" href="/css/main_theme.css">
+		<link rel="stylesheet" href="/css/code_highlighting.css">
+		<meta name="referrer" content="no-referrer">
+	</head>
+	<body>
+		<div id="heading">
+			<div id="cover-text">
+				<h1>有趣的猜想（Vol. 1）</h1>
+				<p>2023-1-21</p>
+			</div>
+		</div>
+		<div class="paper">
+			<h1 id='666-猜想'>666 猜想</h1>
+			<p>相信大家都知道欧拉函数（$\def \phi{\varphi}\phi(n)$）吧，这是一个非常有趣的函数。</p>
+			<blockquote>
+				<h1 id='欧拉函数'>欧拉函数</h1>
+				<p>在数论中，对正整数$n$，欧拉函数是小于$n$的正整数中与$n$互质的数的个数。</p>
+			</blockquote>
+			<p>观察下列等式。</p>
+			<div>$$
+				\begin{aligned}
+				\phi(6) &amp;= 2 = 2^{1}\\
+				\phi(\phi(66)) &amp;= 8 = 2^{3}\\
+				\phi(\phi(\phi(666))) &amp;= 24\\
+				\phi(\phi(\phi(\phi(6666)))) &amp;= 128 = 2^{7}\\
+				\phi(\phi(\phi(\phi(\phi(66666))))) &amp;= 256 = 2^{8}\\
+				\phi(\phi(\phi(\phi(\phi(\phi(666666)))))) &amp;= 512 = 2^{9}\\
+				\phi(\phi(\phi(\phi(\phi(\phi(\phi(6666666))))))) &amp;= 8192 = 2^{13}\\
+				\phi(\phi(\phi(\phi(\phi(\phi(\phi(\phi(66666666)))))))) &amp;= 32768 = 2^{15}\\
+				\phi(\phi(\phi(\phi(\phi(\phi(\phi(\phi(\phi(666666666))))))))) &amp;= 24576\\
+				\phi(\phi(\phi(\phi(\phi(\phi(\phi(\phi(\phi(\phi(6666666666)))))))))) &amp;= 131072 = 2^{18}\\
+				\cdots
+				\end{aligned}
+				$$</div>
+			<p>猜想：等于$2$的正整数幂的等式不会穷尽。</p>
+			<p>为了方便陈述，现在这里定义函数$\def \Liu{\rm{Liu}}\Liu(x)=\frac{2}{3}(10^x-1)$ 。（也就是说， $\Liu(x)=\overset{x个}{\overbrace{66\cdots6}}$ ）</p>
+			<p>形式化地说，猜想：集合$\{(x,k)|\phi^x(\Liu(x))=2^k,x,k\in\mathbb{Z}^+\}$是无限集。
+				换句话说：满足$\phi^x(\Liu(x))=2^k$的正整数对$(x,k)$有无穷多个。</p>
+			<h1 id='二幂有奇猜想'>二幂有奇猜想</h1>
+			<p>观察下列式子。</p>
+			<div>$$
+				\begin{aligned}
+				2^0&=1\\
+				2^1&=2\\
+				2^2&=4\\
+				2^3&=8\\
+				2^4&=16\\
+				2^5&=32\\
+				2^6&=64\\
+				2^7&=128\\
+				2^8&=256\\
+				2^9&=512\\
+				2^{10}&=1024\\
+				2^{11}&=2048\\
+				2^{12}&=4096\\
+				\cdots
+				\end{aligned}
+				$$</div>
+			<p>我们定义：$2$的自然数幂为二幂数。形式化的说：$\forall k \in \mathbb{N}$，$2^k$被称为二幂数；</p>
+			<p>猜想：$\forall k &gt; 11 \in \mathbb{N}$，$2^k$在十进制表示下至少有一位是奇数。</p>
+		</div>
+	</body>
+	<script src="/js/code_highlighting.js"></script>
+	<script src="/js/tex.js" defer></script>
+</html>

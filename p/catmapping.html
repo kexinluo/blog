@@ -1,0 +1,219 @@
+<!doctype html>
+<html>
+	<head>
+		<meta charset='UTF-8'>
+		<title>Arnold 变换</title>
+		<link rel="shortcut icon" href="/res/favicon.png">
+		<link rel="stylesheet" href="/css/main_theme.css">
+		<link rel="stylesheet" href="/css/code_highlighting.css">
+		<meta name="referrer" content="no-referrer">
+	</head>
+	<body>
+		<div id="heading">
+			<div id="cover-text">
+				<h1>Arnold 变换</h1>
+				<p>2023-1-21</p>
+			</div>
+		</div>
+		<div class="paper">
+			<h1 id='arnold-变换'>Arnold 变换（普通）</h1>
+			<p>现代互联网信息传递过程中，通常需要对图片进行加密。Arnold 变换是针对正方形矩阵的一种映射，能够很好地用于图像加密。数字图像置乱和信息文件加密思想类似，它主要是通过对数字图像的像素位置做变换来“扰乱”图像，使其变得面目全非、杂乱无章，从而隐藏图像所要表达的真实信息。数字图像的置乱可以在位置空间、色彩空间、频率空间上进行。随着计算机技术和数字图像处理技术的发展，很多文献对图像置乱提出了不同的置乱算法，大体上可以分为线性变换、几何变换和仿射变换。目前研究较多的置乱技术包括Fibonacci 变换、Arnold 变换、Hilbert 曲线变换、E-曲线变换、Gray 变换、仿射变换、幻方、正交拉丁方变换等方法。无论哪一种置乱技术都是可逆的，或者是具有周期性的，即多次迭代或者做反变换均能恢复原图像。本文主要讲述 Arnold 变换。</p>
+			<p>为了方便演示，我们这里选用一张 4x4 大小的像素图片，只有白色像素和蓝色像素构成，如图所示。</p>
+			<img src="/res/p/catmapping/1.png">
+			<p>首先，对于一个图像，我们以左下角为原点，给每一个像素赋予坐标。</p>
+			<img src="/res/p/catmapping/2.png">
+			<p>然后，我们将对于每一个像素点$P(x,y)$，将$P$ 移动到$(2x+y,x+y)$的位置上。<strong>注意这张图上的格子上面写的坐标其实是他们原本一开始时的坐标，而不是现在的实际坐标。</strong></p>
+			<img src="/res/p/catmapping/3.png">
+			<p>然后是最为神奇的一步，将多余原本的图片的部分裁剪掉，并平移回来，补成一个完整的图。这么说有点抽象，你可以理解为，对于新的图中的每一个像素的坐标，对原来图片的边长取模。</p>
+			<p>如果你还是理解不了，看这个：图中红色虚线全出的部分是超出原图右边界（蓝色激光柱）的，我们将其向左移动，平移到原图内。应当注意的是，这里的“平移”其实是指“对边长取模”，所以不是随便模的。还有一个很重要的一点<strong>图中所有的坐标都是刚开始时的编号，而不是真正的坐标</strong>。比如，右上角，用红色虚线框起来的格子，原图中$(3,3)$坐标的那个，在现在这张图上的实际坐标其实是$(9,6)$，那么平移后的新坐标必须是$(9 \bmod 4,6 \bmod 4)$，也就是$(1,2)$，哦，在这张图上我们只处理了 x 坐标的情况，y 坐标与之类似。</p>
+			<img src="/res/p/catmapping/5.png">
+			<p>好了，最终我们能得到如下的图片。</p>
+			<img src="/res/p/catmapping/6.png">
+			<p>那么这就是简单的 Arnold 变换啦！下面我们动手实践一下吧！</p>
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><pre><code class='language-python'># Arnold 变换
+
+import numpy as np
+import cv2 as cv
+
+def catmap(img):
+	img = np.rot90(img)
+	img = np.rot90(img)  # 原始图片的存储数组是行列不是上文所讲的横纵坐标，需要旋转-90°的转换
+	img = np.rot90(img)
+	n = img.shape[0]  # n 为图像的边长
+	result = np.zeros((n, n, 3), dtype=np.uint8)  # 结果最开始为空白图像
+	for x in range(n):
+		for y in range(n):
+			result[(2*x + y)%n][(x + y)%n] = img[x][y]
+	result = np.rot90(result)  # 旋转90°将横纵坐标转换为行列
+	return result
+
+def main():
+	img = cv.imread(&#39;img/city.png&#39;)  # 读取图片
+	cv.imshow(&#39;result&#39;, catmap(img))  # 显示结果
+
+if __name__ == &#39;__main__&#39;:
+	main()
+	cv.waitKey(0)</code></pre></div>
+			<img src="/res/p/catmapping/7.png">
+			<p>显然，一次 Arnold 变换是不够的。如果我们多做几次呢？</p>
+			<img src="/res/p/catmapping/8.png">
+			<p>可以看到，图像越来越杂乱无章，到最后已经看不出来原图了。</p>
+			<p>解密与加密基本一致，只不过将过程反着操作。这是刚才加密得到的图片，我们从现在开始以这个为原图。</p>
+			<img src="/res/p/catmapping/9.png">
+			<p>只不过这一次，我们将每一个像素$(x,y)$移到$(x-y,2y-x)$去。</p>
+			<img src="/res/p/catmapping/10.png">
+			<img src="/res/p/catmapping/11.png">
+			<p>啊，完好如初，简直就是破镜重圆，覆水再收的感觉。</p>
+			<p>完整过程如下：</p>
+			<img src="/res/p/catmapping/12.png">
+			<p>于是我们很容易写出它的代码：</p>
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><pre><code class='language-python'>def decode_catmap(img):
+	img = np.rot90(img)
+	img = np.rot90(img)
+	img = np.rot90(img)
+	n = img.shape[0]
+	
+	result = np.zeros((n, n, 3), dtype=np.uint8)
+	for x in range(n):
+		for y in range(n):
+			result[(x - y)%n][(2*y - x)%n] = img[x][y]
+	result = np.rot90(result)
+	
+	return result</code></pre></div>
+			<h1 id='小结'>小结</h1>
+			<ul>
+				<li>一次 Arnold 变换：对于图像中的每一个像素 $(x,y)$，将其移动至 $(2x+y,x+y)$。
+					（用线性代数表述：$\begin{bmatrix} x' \\ y' \end{bmatrix} = \begin{bmatrix} 2 & 1 \\ 1 & 1 \end{bmatrix} \times \begin{bmatrix} x \\ y \end{bmatrix} \mod n$）</li>
+				<li>复原一次 Arnold 变换：对于图像中的每一个像素 $(x,y)$，将其移动至 $(x-y,2y-x)$。
+					（用线性代数表述：$\begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} 1 & -1 \\ -1 & 2 \end{bmatrix} \times \begin{bmatrix} x' \\ y' \end{bmatrix} \mod n$，注意到矩阵$\begin{bmatrix} 1 & -1 \\ -1 & 2 \end{bmatrix}$为$\begin{bmatrix} 2 & 1 \\ 1 & 1 \end{bmatrix}$的逆矩阵）</li>
+
+			</ul>
+			<p>好，如果你理解了上面的知识，那么还不够。因为如果一张图片的加密算法是这样的，没有密钥，那么它啥也不是。很轻松就破解了，特别是这种我把破解方法直接写在这段文字的上方的时候。</p>
+			<h1 id='arnold-变换扩展）'>Arnold 变换（扩展）</h1>
+			<p>我们修改 Arnold 变换的定义为：</p>
+			<p>我们有初始图像$G$和初始参数$a,b$，记加密后的图像为$G'$，那么</p>
+			<ul>
+				<li>加密操作即：$\forall P(x,y) \in G, P' = \begin{bmatrix} ab+1 & a \\ b & 1 \end{bmatrix} \times \begin{bmatrix} x \\ y \end{bmatrix} \bmod n$</li>
+				<li>解密操作即：$\forall P'(x',y') \in G', P = \begin{bmatrix} 1 & -a \\ -b & ab+1 \end{bmatrix} \times \begin{bmatrix} x' \\ y' \end{bmatrix} \bmod n$</li>
+
+			</ul>
+			<p>容易发现，矩阵$\begin{bmatrix} 1 & -a \\ -b & ab+1 \end{bmatrix}$为$\begin{bmatrix} ab+1 & a \\ b & 1 \end{bmatrix}$的逆矩阵。这一点很好理解。</p>
+			<p>可以看出，刚才我们所探讨的情况属于$a=b=1$的特殊情况。</p>
+			<p>好，这样我们就能写出最终的代码了：</p>
+			<div id="cnblogs_post_body" class="blogpost-body cnblogs-markdown"><pre><code class='language-python'># Arnold 变换
+
+import numpy as np
+import cv2 as cv
+
+def catmap(img, times=1, a=1, b=1):
+	for i in range(times):
+		img = np.rot90(img)
+		img = np.rot90(img)
+		img = np.rot90(img)
+		n = img.shape[0]
+		result = np.zeros((n, n, 3), dtype=np.uint8)
+		
+		for x in range(n):
+			for y in range(n):
+				result[(a*b*x + x + a*y)%n][(b*x + y)%n] = img[x][y]
+		
+		result = np.rot90(result)
+		img = result
+	return result
+
+def decode_catmap(img, times=1, a=1, b=1):
+	for i in range(times):
+		img = np.rot90(img)
+		img = np.rot90(img)
+		img = np.rot90(img)
+		n = img.shape[0]
+		result = np.zeros((n, n, 3), dtype=np.uint8)
+		
+		for x in range(n):
+			for y in range(n):
+				result[(x - a*y)%n][(a*b*y + y - b*x)%n] = img[x][y]
+		
+		result = np.rot90(result)
+		img = result
+	return result
+
+def main(t, a, b):
+	img = cv.imread(&#39;img/city.png&#39;)
+	coded = catmap(img, t, a, b)
+	decoded = decode_catmap(coded, t, a, b)
+	cv.imshow(&quot;coded&quot;, coded)
+	cv.imshow(&quot;decoded&quot;, decoded)
+	cv.imwrite(&#39;temp/output.png&#39;, coded)
+	cv.imwrite(&#39;temp/output2.png&#39;, decoded)
+
+if __name__ == &#39;__main__&#39;:
+	main(1, 1, 1)
+	cv.waitKey(0)</code></pre></div>
+			<p>尝试一下 $a=114514,b=1919810$的情况：</p>
+			<img src="/res/p/catmapping/13.png">
+			<p>跟我们之前得出的结论一样，好耶。</p>
+			<h1 id='后记'>后记</h1>
+			<p>众所周知，Arnold 变换主要被用于图像加密/解密，那么必须要具有一定的鲁棒性（即能扛得住一定的恶意攻击）</p>
+			<p>那么第一步就是让敌人无法知道这张图片的意思。即混淆图片的内容，隐藏图片的信息。</p>
+			<img src="/res/p/catmapping/14.png">
+			<p>如果敌人截获了左图的加密后的图像那么只要他不知道$a,b$的值，那么这几乎是无解的！
+				因为$a$和$b$所形成的组合高达$n^2$种（因为要对$n$取模）。</p>
+			<p>第二步就是抗干扰性，让敌人即使对图片进行恶意修改也没有办法都达到预期的效果。</p>
+			<img src="/res/p/catmapping/15.png">
+			<p>除此之外还有一个特点，这是大多数加密算法的同性。</p>
+			<p>如果你一直对一个图片进行同样参数的 Arnold 变换，那么你最终会发现：有一次我加密后，竟然变成了最开始的图像。<strong>具有周期性！</strong>
+			</p>
+			<p>以下内容参考自论文<a href='https://kns.cnki.net/kcms/detail/detail.aspx?dbcode=CJFD&amp;dbname=CJFD2008&amp;filename=DZJC200805005'>《Arnold变换的周期性与安全性分析》</a>。</p>
+			<p>图像的 Arnold 变换的周期性与$N$的取值有关，F. J. Dyson 和 H. Falk 给出了对于任意$N>2$，Arnold 变换的周期$T_N=N^2/2$的结论。<a href='https://kns.cnki.net/kcms/detail/detail.aspx?dbcode=CJFD&amp;dbname=CJFD2005&amp;filename=ZSDZ200502001'>此文献</a>更是得出它的周期等于以$N$的两两互素的因数为模的变换的周期之最小公倍数。</p>
+			<p>以我的能力我是没有办法知道为什么具有周期性，不过没有关系，从中我们可以发现，Arnold 变换的缺点为：</p>
+			<ul>
+				<li>有周期性，容易被破解</li>
+				<li>密钥空间小，容易被破解</li>
+
+			</ul>
+			<p>针对第二个问题有一个小改进：将转换矩阵$\begin{bmatrix} ab+1 & a \\ b & 1 \end{bmatrix}$更换为$\begin{bmatrix}c_{11} & c_{12} \\ c_{21} & c_{22}\end{bmatrix}$，且$c_{ij} \in \mathbb{N}_+,c_{11}c_{22}-c_{12}c_{11}=\pm 1$。那么这个加密方式仍具有混沌映射的性质。<a href='https://kns.cnki.net/kcms/detail/detail.aspx?dbcode=CJFD&amp;dbname=CJFD2003&amp;filename=TXXB200302006'>为什么？</a>
+			</p>
+			<p>用变换矩阵参数作密钥时的有效密钥空间如下表：</p>
+			<figure>
+				<table>
+					<thead>
+						<tr>
+							<th>$N=$</th>
+							<th>$2$</th>
+							<th>$4$</th>
+							<th>$5$</th>
+							<th>$8$</th>
+							<th>$10$</th>
+							<th>$16$</th>
+							<th>$32$</th>
+							<th>$64$</th>
+							<th>$100$</th>
+							<th>$128$</th>
+							<th>$256$</th>
+							<th>$512$</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr>
+							<td>矩阵密钥空间</td>
+							<td>2</td>
+							<td>14</td>
+							<td>28</td>
+							<td>70</td>
+							<td>106</td>
+							<td>286</td>
+							<td>1230</td>
+							<td>4910</td>
+							<td>11974</td>
+							<td>19830</td>
+							<td>79278</td>
+							<td>318382</td>
+						</tr>
+					</tbody>
+				</table>
+			</figure>
+		</div>
+	</body>
+	<script src="/js/code_highlighting.js"></script>
+	<script src="/js/tex.js" defer></script>
+</html>

@@ -1,0 +1,11 @@
+document.write('<script src="https://common.cnblogs.com/highlight/10.3.1/highlight.min.js"></script>');
+document.write('<script src="https://cdn.bootcdn.net/ajax/libs/highlightjs-line-numbers.js/2.8.0/highlightjs-line-numbers.min.js"></script>');
+document.write('<script>');
+document.write('	hljs.initHighlightingOnLoad();');
+document.write('	hljs.initLineNumbersOnLoad();');
+document.write('	$(document).ready(function () {');
+document.write('		$("code.hljs").each(function (i, block) {');
+document.write('			hljs.lineNumbersBlock(block);');
+document.write('		});');
+document.write('	});');
+document.write('</script>');
